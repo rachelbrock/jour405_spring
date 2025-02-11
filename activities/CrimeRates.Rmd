@@ -6,10 +6,17 @@ Follow along with the demo to learn how to calculate crime rates using R and the
 
 ### Task 1: Load the tidyverse and install and load janitor
 
-
+```{r}
+library(tidyverse)
+install.packages("janitor")
+library(janitor)
+```
 
 ### Task 2: Load the crime dataset from https://raw.githubusercontent.com/dwillis/jour405/refs/heads/main/data/md_annual_crime.csv
 
+```{r}
+crime_data <-read_csv("https://raw.githubusercontent.com/dwillis/jour405/refs/heads/main/data/md_annual_crime.csv") |> clean_names()
+```
 
 
 ### Task 3: Use janitor to clean up the column names
@@ -18,17 +25,24 @@ Follow along with the demo to learn how to calculate crime rates using R and the
 
 ### Task 4: Calculate the total crime rate for each year (picking our unit!)
 
+```{r}
+crime_data |> mutate(total_rate = grand_total/population * 10000)
+```
 
 
 ### Task 5: Calculate the violent and property crime rates for each year (same unit)
 
+```{r}
+crimes_with_rates <- crime_data |> mutate(violent_rate = violent_crime_total/population * 10000)
+crime_data |> mutate(property_rate = property_crime_total/population * 10000)
+```
 
 
 ### Task 6: Describe our results
 
 Write a few sentences about what you found in the data. What years had the highest crime rates? What years had the lowest crime rates? Does the pattern match your expectations?
 
-
+1995 has the highest total crime rates, robberies and theft were very prominent during this time. 2020 had the lowest total crime rates which matches my expectation because everyone was inside because of Covid. This dis match my expectations. 
 
 
 When you are done, save your work, switch to GitHub Desktop, then add, commit and push your changes to GitHub and submit the URL of the notebook in ELMS.
