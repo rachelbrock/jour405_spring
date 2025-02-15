@@ -46,6 +46,7 @@ Let's add two percentage change columns to your dataframe: one for violent crime
 ```{r}
 md_cities_change <- md_cities |> mutate(pct_change = (property2020 - property2019)/property2020*100)
   md_cities |> mutate(pct_change = (violent2020 - violent2019)/violent2020*100)
+  
 
 ```
 
@@ -64,3 +65,4 @@ Kent has no reported incidents of violent crime in two years. All other counties
 ### Task 9: Save Your Work and Put it on GitHub
 
 Save this notebook, then commit it to your local repository. Push the changes to your GitHub repository and submit the URL for this file in ELMS.
+
