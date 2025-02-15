@@ -66,3 +66,12 @@ Kent has no reported incidents of violent crime in two years. All other counties
 
 Save this notebook, then commit it to your local repository. Push the changes to your GitHub repository and submit the URL for this file in ELMS.
 
+### Task 10: Percentiles
+```{r}
+md_cities_percentiles <- md_cities |> mutate(percentile = ntile ((violent_rate_2020 = violent2020/pop2020 * 10000), 100))
+
+summary(IQR=IQR(violent_rate_2020))
+
+This new data makes me realize Kitzmiller has few violent crimes yet it is in one of the highest percentiles. 
+```
+
