@@ -3,3 +3,37 @@ title: "MandMs"
 ---
 
 
+```{r}
+library(tidyverse)
+```
+```{r}
+set.seed(42) # Setting seed for reproduceability 
+population <- tibble(
+  age=sample(18:80,1000, replace = TRUE)
+
+)
+head(population)
+```
+```{r}
+sample_100 <- population |> 
+  sample_n(100)
+
+sample_50 <- population |> 
+  sample_n(50)
+
+sample_10 <- population |> 
+  sample_n(10)
+```
+
+```{r}
+sample_100 |> summarize(mean=mean(age), sd=sd(age))
+sample_50 |> summarize(mean=mean(age), sd=sd(age))
+sample_10 |> summarize(mean=mean(age), sd=sd(age))
+                      
+
+```
+```{r}
+population |> summarize(mean=mean(age), sd=sd(age))
+```
+
+The means are not very similar, but the standard deviations are similar. This is important because standard deviation is the variety of responses we are getting. We want to have a smaller survey size with the same amount of variety, which we do here-even with the sample size of 10. 
