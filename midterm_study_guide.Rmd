@@ -1,0 +1,208 @@
+---
+title: "midterm_study_guide"
+output: html_document
+---
+
+### Task 1: Load the tidyverse
+
+```{r}
+library(tidyverse)
+```
+
+
+### Task 2: Load the Data and Describe It
+
+```{r}
+pg_crime <- read_csv("https://raw.githubusercontent.com/dwillis/jour405/refs/heads/main/data/pg_crime_totals_2024.csv")
+```
+
+
+### Task 4: Calculating Averages
+
+Calculate the total number of incidents per month for each category using `mutate()`, calling the new column `total_incidents`. Then calculate the average number of incidents per month for each category of crime, calling the new column `average_incidents`. Assign the result to a new dataframe called `pg_crime_averages`.
+
+```{r}
+pg_crime_averages <- pg_crime |> 
+  mutate(
+```
+
+
+### Task 6: Testing a Theory
+
+One theory about crime is that it is more likely to occur in the summer months. Test this theory by creating three new columns using `mutate()` that calculate the percentage change compared to the average for each category of crime for the months of June, July, and August. Call the new columns `june_change`, `july_change`, and `august_change`. Assign the result to a new dataframe called `summer_crime_averages`.
+
+```{r}
+summer_crime_averages <- pg_crime_averages |> 
+  mutate(june_change = (Jun - average_incidents) / average_incidents * 100) |> 
+  mutate(july_change = (Jul - average_incidents) / average_incidents * 100) |> 
+  mutate(august_change = (Aug - average_incidents) / average_incidents * 100)
+```
+
+
+
+
+
+### Task 4: Calculate the Mean and Median of the Salaries
+
+Write code to calculate the mean and median of the salaries in the dataset using the `summarize()` function. You don't need to make a new dataframe, just display the results.
+
+```{r}
+wh_salaries |> 
+  summarize(mean_salary = mean(salary),
+            median_salary = median(salary)
+)
+```
+
+### Task 5: Add in the minimum and maximum salaries
+
+Take the code you just wrote and add in the minimum and maximum salaries (the functions for that are `min()` and `max()`). Your results should show four columns: mean_salary, median_salary, min_salary, max_salary.
+
+```{r}
+wh_salaries |> 
+  summarize(mean_salary = mean(salary),
+            median_salary = median(salary),
+            min_salary = min(salary),
+            max_salary = max(salary)
+)
+```
+
+
+
+### Task 3: Calculating Rates
+
+Calculate violent and property crime rates for each city for both years using `mutate()`. You'll create four new columns: `violent_rate_2019`, `property_rate_2019`, `violent_rate_2020`, and `property_rate_2020`. You'll need to figure out the proper unit rate, given that there are varying populations. There's no perfect choice; choose the one that works best for you. Save the results to a new dataframe called `md_cities_rates`.
+
+```{r}
+md_cities_rates <- md_cities |> 
+mutate(violent_rate_2019 = (violent2019/pop2019) * 10000,
+  property_rate_2019 = (property2019/pop2019) * 10000,
+  violent_rate_2020 = (violent2020/pop2020) * 10000,
+  property_rate_2020 = (property2020/pop2020) * 10000)
+```
+
+
+
+### Task 5: Calculate Percentage Change
+
+Let's add two percentage change columns to your dataframe: one for violent crime rates and one for property crime rates. You'll calculate the percentage change between 2019 and 2020 for each city. Save the results to a new dataframe called `md_cities_change`.
+
+```{r}
+md_cities_change <- md_cities_rates |>
+  mutate(property_change = ((property_rate_2020 - property_rate_2019)/property_rate_2020) * 100,
+  violent_change = ((violent_rate_2020 - violent_rate_2019)/violent_rate_2020) * 100)
+  
+
+```
+
+
+### Task 10: Percentiles
+```{r}
+md_cities_percentiles <- md_cities_change |> 
+  mutate(violent_percentile = ntile (violent_rate_2020, 100))
+
+md_cities_percentiles |> 
+  summarise(IQR = IQR(violent_rate_2020))
+```
+
+
+
+### Task 3: Calculate the mean and standard deviation of the danceability scores
+
+Write code to calculate the mean and standard deviation of the danceability scores in the Spotify dataset. Display those.
+
+```{r}
+spotify_songs |> summarise(mean = mean(danceability), sd = sd(danceability))
+```
+
+
+### Task 4: Create a histogram of the danceability scores
+
+Write code to create a histogram of the danceability scores in the Spotify dataset, based on the example we did in class.
+
+```{r}
+spotify_songs |> 
+  ggplot() +
+  geom_histogram(aes(x = danceability))
+```
+
+
+
+### Task 5: Add a line to the histogram for the mean danceability score
+
+Take the same code and add a vertical line to the histogram for the mean danceability score, based on the example in class.
+
+```{r}
+spotify_songs |> 
+  ggplot() +
+  geom_histogram(aes(x = danceability)) +
+  geom_vline(aes(xintercept = mean(danceability)), color="red" , linetype = "dashed", size = 1) 
+```
+
+
+### Task 6: Add two lines to the histogram to show one standard deviation
+
+Take the previous code and add two lines to the histogram for the 1st standard deviation below and above the mean score.
+
+```{r}
+spotify_songs |> 
+  ggplot() +
+  geom_histogram(aes(x = danceability)) +
+  geom_vline(aes(xintercept = mean(danceability)), color="red" , linetype = "dashed", size = 1) +
+  geom_vline(aes(xintercept = mean(danceability) - sd(danceability)), color= "blue" , linetype = "dashed", size = 1)+
+  geom_vline(aes(xintercept = mean(danceability) + sd(danceability)), color= "blue" , linetype = "dashed", size = 1)
+```
+
+
+
+
+### Task 3: Sample 5 rows of data from the dataset, and then sample 10 rows, saving each to separate dataframes called sample5 and sample10.
+
+```{r}
+
+sample5 <- mm_data |> 
+  sample_n(5)
+
+sample10 <- mm_data |> 
+  sample_n(10)
+```
+
+
+### Task 4: Calculate the mean and standard deviation of the samples, using one of the colors.
+```{r}
+sample5 |> summarize(mean=mean(black), sd=sd(black))
+sample10 |> summarize(mean=mean(black), sd=sd(black))
+```
+
+
+### Task 5: Calculate the mean and standard deviation of the population, using the same color as Task 4
+```{r}
+ mm_data |> summarize(mean=mean(black), sd=sd(black)) 
+```
+
+
+
+### Task 3: Calculate the correlation coefficient
+
+Use the `cor()` function to calculate the correlation coefficient between the DJIA and GDP.
+
+```{r}
+gdp_djia |> 
+  summarize(correlation = cor(DJIA, GDP))
+```
+
+
+### Task 4: Create a scatterplot
+
+Use the `ggplot()` function to create a scatterplot of the DJIA and GDP.
+
+```{r}
+gdp_djia |> 
+  ggplot() +
+  geom_point(aes(x = DJIA, y = GDP)) +
+  geom_smooth(aes(x = DJIA, y = GDP), method = 'lm') +
+  geom_text(aes(x = DJIA, y = GDP, label = Quarter)) +
+  labs(title = "DJIA vs. GDP",subtitle = "What's the relationship?",
+       x = "DJIA",
+       y = "GDP")
+```
+
