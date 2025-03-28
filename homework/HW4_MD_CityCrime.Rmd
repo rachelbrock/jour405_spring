@@ -25,10 +25,11 @@ md_cities <-read_csv ("https://raw.githubusercontent.com/dwillis/jour405/refs/he
 Calculate violent and property crime rates for each city for both years using `mutate()`. You'll create four new columns: `violent_rate_2019`, `property_rate_2019`, `violent_rate_2020`, and `property_rate_2020`. You'll need to figure out the proper unit rate, given that there are varying populations. There's no perfect choice; choose the one that works best for you. Save the results to a new dataframe called `md_cities_rates`.
 
 ```{r}
-md_cities_rates <- md_cities |> mutate(violent_rate_2019 = violent2019/pop2019 * 10000)
-md_cities |> mutate(property_rate_2019 = property2019/pop2019 * 10000)
-md_cities |> mutate(violent_rate_2020 = violent2020/pop2020 * 10000)
-md_cities |> mutate(property_rate_2020 = property2020/pop2020 * 10000)
+md_cities_rates <- md_cities |> 
+mutate(violent_rate_2019 = (violent2019/pop2019) * 10000,
+  property_rate_2019 = (property2019/pop2019) * 10000,
+  violent_rate_2020 = (violent2020/pop2020) * 10000,
+  property_rate_2020 = (property2020/pop2020) * 10000)
 
 ```
 
@@ -44,8 +45,9 @@ What thins says about crime in Maryland is that Baltimore City has the highest v
 Let's add two percentage change columns to your dataframe: one for violent crime rates and one for property crime rates. You'll calculate the percentage change between 2019 and 2020 for each city. Save the results to a new dataframe called `md_cities_change`.
 
 ```{r}
-md_cities_change <- md_cities |> mutate(pct_change = (property2020 - property2019)/property2020*100)
-  md_cities |> mutate(pct_change = (violent2020 - violent2019)/violent2020*100)
+md_cities_change <- md_cities_rates |>
+  mutate(property_change = ((property_rate_2020 - property_rate_2019)/property_rate_2020) * 100,
+  violent_change = ((violent_rate_2020 - violent_rate_2019)/violent_rate_2020) * 100)
   
 
 ```
@@ -68,10 +70,10 @@ Save this notebook, then commit it to your local repository. Push the changes to
 
 ### Task 10: Percentiles
 ```{r}
-md_cities_percentiles <- md_cities |> mutate(percentile = ntile ((violent_rate_2020 = violent2020/pop2020 * 10000), 100))
+md_cities_percentiles <- md_cities_change |> 
+  mutate(violent_percentile = ntile (violent_rate_2020, 100))
 
-summary(IQR=IQR(violent_rate_2020))
-
-This new data makes me realize Kitzmiller has few violent crimes yet it is in one of the highest percentiles. 
+md_cities_percentiles |> 
+  summarise(IQR = IQR(violent_rate_2020))
 ```
 
