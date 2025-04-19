@@ -14,7 +14,7 @@ Disclaimer: For some reason read_csv was NOT working and read.csv DID work to lo
 
 Final Project Goal:
 
-The aim of my final project is to study the relationship between acceptance rate and graduation rate in the Big10 conference. Through R, I can find the average rates of acceptance and graduation for each school. I can also analyze if lower graduation rates mean that a school has a higher graduation rate can conclude if these trends are just a coincidence or if there is enough data to prove statistical significance (ANOVA test). I would also be open to doing more tests, but I am not one hundred percent sure what else I could do. 
+The aim of my final project is to study the relationship between acceptance rate and graduation rate in the Big10 conference. Through R, I can find the average rates of acceptance and graduation for each school. I can also analyze if lower graduation rates mean that a school has a higher graduation rate can conclude if these trends are just a coincidence or if there is enough data to prove statistical significance (ANOVA test). I would also be open to doing more tests, but I am not one hundred percent sure what else I could do. The columns that will be most important will be the ones along the top row that show the acceptance and graduation rates for each year.  
 
 Null Hypothesis: Schools with low graduation rates do not have higher graduation rates than those with higher acceptance rates.
 
