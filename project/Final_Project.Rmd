@@ -5,6 +5,7 @@ output: html_document
 
 ```{r}
 library(tidyverse)
+library(ggrepel)
 ```
 
 ```{r}
@@ -32,93 +33,144 @@ college_statistics_long <- college_statistics |>
   )
 ```
 
-
-Final Project Goal:
-
-The aim of my final project is to study the relationship between acceptance rate and graduation rate in the Big10 conference. Through R, I can find the average rates of acceptance and graduation for each school. I can also analyze if lower graduation rates mean that a school has a higher graduation rate can conclude if these trends are just a coincidence or if there is enough data to prove statistical significance (ANOVA test). I would also be open to doing more tests, but I am not one hundred percent sure what else I could do. The columns that will be most important will be the ones along the top row that show the acceptance and graduation rates for each year.  
-
-Null Hypothesis: There is no relationship between acceptance rate and 4-year graduation rate among Big Ten schools.
-
-Alternative Hypothesis: There is a statistically significant relationship between acceptance rate and 4-year graduation rate among Big Ten schools.
-
-Data Description:
-
-I found my data through a variety of sources which included the universities' research offices, college evaluation websites (ex.niche) and Google. It was impossible to get all of my data from a singular source, so I complied what I found from each source on a Google Sheets document. Because there is both a 4 year graduation rate and 6 year graduation rate for colleges, I chose to focus my analysis on the 4 year graduation rate. The time periods covered are 2020, 2022, and 2024 to give some variety to the data. I believe that the pandemic overall helped to increase acceptance rates during 2020 and, in general, most acceptance rates have gone down since then. 
-
-
-
-Possible tests:
-
 Summary Stats (mean and standard deviation)
+
 ```{r}
 college_statistics |> summarise(mean = mean(Acceptance_Rate_2020), sd = sd(Acceptance_Rate_2020))
 college_statistics |> summarise(mean = mean(Acceptance_Rate_2022), sd = sd(Acceptance_Rate_2022))
 college_statistics |> summarise(mean = mean(Acceptance_Rate_2024), sd = sd(Acceptance_Rate_2024))
 ```
+```{r}
+library(dplyr)
+
+summary_stats <- college_statistics_long  |>
+  group_by(year) |>
+  summarize(
+    MeanAcceptance = mean(acceptance_rate, na.rm = TRUE),
+    SDAcceptance = sd(acceptance_rate, na.rm = TRUE),
+    MeanGraduation = mean(graduation_rate, na.rm = TRUE),
+    SDGraduation = sd(graduation_rate, na.rm = TRUE)
+  )
+print(summary_stats)
+```
 
 
-ANOVA test that determines the relationship between acceptance rate and graduation rate 
+ANOVA TEST
 
-POSSIBLE METHOD (Generated with the help of Chat GPT)
-
-Divide schools into groups based on acceptance rate (like Low, Medium, High)
-
-Then compare the average graduation rate across these groups
-
-If the differences are statistically significant, that suggests acceptance rate has a meaningful impact on graduation rate.
-
-You can break schools into 3 groups based on acceptance rate:
-
-
-big10_data$acceptance_group <- cut(
-  big10_data$acceptance_rate,
+```{r}
+college_statistics_long$acceptance_group <- cut(
+  college_statistics_long$acceptance_rate,
   breaks = 3,
   labels = c("Low", "Medium", "High")
-  
-This puts the lowest third of schools into "Low", middle third into "Medium", etc.
+)
 
-Now, you test whether average graduation rate differs across these 3 groups:
-
-anova_model <- aov(graduation_rate ~ acceptance_group, data = big10_data)
+anova_model <- aov(graduation_rate ~ acceptance_group, data = college_statistics_long)
 summary(anova_model)
 
-Output: F value: Measures variance between groups vs. within groups
 
-p-value (Pr(>F)): If it's < 0.05, it means at least one group differs significantly
-
-So if your p-value is low, you’d conclude that schools in different acceptance rate groups have significantly different graduation rates.
+```
 
 
+Do schools with low, medium, or high acceptance rates have significantly different graduation rates?
+
+Grouping schools into 3 levels of acceptance rate (Low, Medium, High), and then checking if the average graduation rate is different across those 3 groups.
+
+Null hypothesis (H₀): The mean graduation rates are equal across all acceptance rate groups.
+
+Alternative hypothesis (H₁): At least one group has a different mean graduation rate.
+
+If the p-value from summary(anova_model) is:
+
+< 0.05 → You reject the null hypothesis. There's evidence that graduation rates differ by acceptance group.
+
+≥ 0.05 → You do not reject the null. No significant difference found.
 
 
-Scatter plot with a line of best fit (HW8) and a correlation coefficient 
+P value found: 0.0000672
 
-(Generated with the help of Chat GPT)
+This means: 
 
-Step-by-Step in R (using ggplot2)
-Let’s assume your dataframe is called big10_data and the key columns are acceptance_rate and graduation_rate.
+There is strong statistical evidence to reject the null hypothesis.
 
-Create the Plot:
+➤ Graduation rates are significantly different between at least one pair of acceptance rate groups (Low, Medium, High).
 
-library(ggplot2)
 
-ggplot(big10_data, aes(x = acceptance_rate, y = graduation_rate)) +
-  geom_point(color = "steelblue", size = 3) +                 # scatterplot points
-  geom_smooth(method = "lm", se = TRUE, color = "darkred") + # line of best fit
+
+Scatter Plot: A scatter plot is a great way to visualize the relationship between acceptance rate and graduation rate.
+
+```{r}
+ggplot(college_statistics_long, aes(x = acceptance_rate, y = graduation_rate)) +
+  geom_point(color = "steelblue", size = 3) +
+  geom_smooth(method = "lm", se = FALSE, color = "darkred", linewidth = 1) +
+  geom_text_repel(aes(label = College), size = 3) +
   labs(
-    title = "Acceptance Rate vs Graduation Rate (Big Ten)",
-    x = "Acceptance Rate (%)",
-    y = "4-Year Graduation Rate (%)"
+    title = "Acceptance Rate vs Graduation Rate (Labeled with Line of Best Fit)",
+    x = "Acceptance Rate",
+    y = "Graduation Rate"
   ) +
   theme_minimal()
-  
-Each point = a Big Ten school (or school-year if you're using long data)
+```
 
-Line of best fit = regression line showing trend
 
-Shaded area = confidence interval (shows uncertainty around the line)
 
-If the line slopes downward, that suggests schools with lower acceptance rates tend to have higher graduation rates. 
+Linear Regression:
+
+
+```{r}
+model <- lm(graduation_rate ~ acceptance_rate, data = college_statistics_long)
+summary(model)
+```
+
+
+
+lm() fits the linear regression model.
+
+graduation_rate ~ acceptance_rate means you're predicting graduation rate based on acceptance rate.
+
+summary(model) gives you:
+
+Coefficients (slope and intercept)
+
+R-squared (how well the model fits)
+
+p-value (to see if the relationship is statistically significant)
+
+
+
+```{r}
+library(ggplot2)
+library(ggrepel)
+
+ggplot(college_statistics_long, aes(x = acceptance_rate, y = graduation_rate)) +
+  geom_point(color = "steelblue", size = 3) +  # data points
+  geom_smooth(method = "lm", se = TRUE, color = "darkred", linewidth = 1) +  # regression line with confidence interval
+  labs(
+    title = "Linear Regression: Graduation Rate vs Acceptance Rate",
+    x = "Acceptance Rate",
+    y = "Graduation Rate"
+  ) +
+  theme_minimal()
+```
+
+
+Dots = Each school
+
+Red line = Best-fit line from linear regression
+
+Shaded area = Confidence interval (can remove with se = FALSE)
+
+Labels = School names (won’t overlap thanks to ggrepel)
+
+
+Link to Chat GPT conversation: https://chatgpt.com/c/68168603-2eb0-8005-a9fa-0b149c8122d7 
+
+
+
+
+
+
+ 
+
 
 
 
