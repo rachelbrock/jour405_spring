@@ -162,7 +162,7 @@ Shaded area = Confidence interval (can remove with se = FALSE)
 Labels = School names (won’t overlap thanks to ggrepel)
 
 
-Link to Chat GPT conversation: https://chatgpt.com/c/68168603-2eb0-8005-a9fa-0b149c8122d7 
+Link to Chat GPT conversation: https://chatgpt.com/share/68168fde-6eb8-8005-99db-5f616ed79cb5 
 
 
 
