@@ -3,10 +3,13 @@ title: "Final_Project"
 output: html_document
 ---
 
+##Loading Libraries 
 ```{r}
 library(tidyverse)
 library(ggrepel)
 ```
+
+##Assign Data
 
 ```{r}
 college_statistics <- read_csv("https://raw.githubusercontent.com/rachelbrock/jour405_spring/refs/heads/main/project/Final%20Project%20Data%20-%20Sheet1%20(1).csv")
@@ -32,14 +35,24 @@ college_statistics_long <- college_statistics |>
     values_from = rate
   )
 ```
+**Interpretation:**
+Before we can analyze the data, we need to ensure it's in the correct format. The raw dataset has separate columns for each combination of metric (acceptance rate or graduation rate) and year. We need to make the data "wider" instead of "longer". Basically, when data is "wider" (more columns) it can be harder to visualize and analyze. When it is longer (more rows), it's usually easier and that's how R expects data to be.
 
-Summary Stats (mean and standard deviation)
+##Summary Statistics
+
+We start by calculating **basic summary statistics**—mean and standard deviation—for acceptance rates across different years. This helps us understand general trends and variability.
+
+- **Mean** tells us the average acceptance rate.
+- **Standard deviation** (SD) tells us how spread out the rates are around the mean.
 
 ```{r}
 college_statistics |> summarise(mean = mean(Acceptance_Rate_2020), sd = sd(Acceptance_Rate_2020))
 college_statistics |> summarise(mean = mean(Acceptance_Rate_2022), sd = sd(Acceptance_Rate_2022))
 college_statistics |> summarise(mean = mean(Acceptance_Rate_2024), sd = sd(Acceptance_Rate_2024))
 ```
+
+We also look at both acceptance and graduation rates grouped by year:
+
 ```{r}
 library(dplyr)
 
@@ -54,8 +67,33 @@ summary_stats <- college_statistics_long  |>
 print(summary_stats)
 ```
 
+**Interpretation:**
 
-ANOVA TEST
+The the SD is high, so we can see there's a lot of variation in school acceptance or graduation rates.
+
+
+##ANOVA TEST: Do Graduation Rates Differ by Acceptance Rate Group?
+
+Next, we want to know whether the **graduation rate** is significantly different across schools with different levels of selectivity (acceptance rate).
+
+We group colleges into three categories:
+- **Low acceptance rate** (highly selective)
+- **Medium**
+- **High acceptance rate** (less selective)
+
+Then we run an **ANOVA test**, which checks whether the **average graduation rates differ significantly between these three groups**.
+
+Hypotheses:
+
+Null hypothesis (H₀): The mean graduation rates are equal across all acceptance rate groups.
+
+Alternative hypothesis (H₁): At least one group has a different mean graduation rate.
+
+P-value:
+
+< 0.05 → You reject the null hypothesis. There's evidence that graduation rates differ by acceptance group.
+
+≥ 0.05 → You do not reject the null. No significant difference found.
 
 ```{r}
 college_statistics_long$acceptance_group <- cut(
@@ -67,24 +105,11 @@ college_statistics_long$acceptance_group <- cut(
 anova_model <- aov(graduation_rate ~ acceptance_group, data = college_statistics_long)
 summary(anova_model)
 
+tukey_result <- TukeyHSD(anova_model)
+tukey_result
 
 ```
-
-
-Do schools with low, medium, or high acceptance rates have significantly different graduation rates?
-
-Grouping schools into 3 levels of acceptance rate (Low, Medium, High), and then checking if the average graduation rate is different across those 3 groups.
-
-Null hypothesis (H₀): The mean graduation rates are equal across all acceptance rate groups.
-
-Alternative hypothesis (H₁): At least one group has a different mean graduation rate.
-
-If the p-value from summary(anova_model) is:
-
-< 0.05 → You reject the null hypothesis. There's evidence that graduation rates differ by acceptance group.
-
-≥ 0.05 → You do not reject the null. No significant difference found.
-
+**Interpretation:**
 
 P value found: 0.0000672
 
@@ -98,6 +123,12 @@ There is strong statistical evidence to reject the null hypothesis.
 
 Scatter Plot: A scatter plot is a great way to visualize the relationship between acceptance rate and graduation rate.
 
+- Each **point** is a college.
+- The **x-axis** is the acceptance rate.
+- The **y-axis** is the graduation rate.
+- The **red line** is the line of best fit (linear regression line)
+
+
 ```{r}
 ggplot(college_statistics_long, aes(x = acceptance_rate, y = graduation_rate)) +
   geom_point(color = "steelblue", size = 3) +
@@ -110,32 +141,51 @@ ggplot(college_statistics_long, aes(x = acceptance_rate, y = graduation_rate)) +
   ) +
   theme_minimal()
 ```
+**Interpretation:**
+
+The red line shows a **negative correlation** — as acceptance rate goes up (less selective), graduation rate tends to go down. University of Maryland seems to lie at a middle point in our data set. 
 
 
+##Simple Linear Regression:
 
-Linear Regression:
-
+This tells us how acceptance rate predicts graduation rate
 
 ```{r}
 model <- lm(graduation_rate ~ acceptance_rate, data = college_statistics_long)
 summary(model)
 ```
+**Interpretation:**
+
+### What the output shows:
+- **Slope:** Indicates the direction and strength of the relationship.
+- **P-value:** Tells if the relationship is statistically significant. The relationship is statistically significant in this case.
+- **R² (R-squared):** Tells how much of the variation in graduation rate is explained by acceptance rate. 
+
+If p < 0.05 and the slope is negative (which it is), we can confirm what we saw in the scatter plot — **more selective schools tend to have better graduation outcomes**.
+
+---
 
 
 
-lm() fits the linear regression model.
+Multiple Linear Regression (Adding Year as a Factor)
 
-graduation_rate ~ acceptance_rate means you're predicting graduation rate based on acceptance rate.
+We add the year to the regression to see if the relationship holds across different years. Adding year allows us to control for time-based variation. This shows whether the relationship between acceptance and graduation rates holds across years.
 
-summary(model) gives you:
+```{r}
+college_statistics_long$year <- as.factor(college_statistics_long$year)
 
-Coefficients (slope and intercept)
+multi_model <- lm(graduation_rate ~ acceptance_rate + year, data = college_statistics_long)
+summary(multi_model)
+```
+**Interpretation:**
+- This model tells us whether acceptance rate still predicts graduation rate **after accounting for time-based changes**.
+- If the acceptance rate remains significant, the effect is **robust across years**.
+- We can see that throughout all years, our hypothesis remains true and consistent 
 
-R-squared (how well the model fits)
 
-p-value (to see if the relationship is statistically significant)
+## Linear Regression Visualization (With Confidence Interval)
 
-
+This version of the regression plot includes a shaded **confidence interval** to show the uncertainty around the predictions.
 
 ```{r}
 library(ggplot2)
@@ -161,8 +211,73 @@ Shaded area = Confidence interval (can remove with se = FALSE)
 
 Labels = School names (won’t overlap thanks to ggrepel)
 
+**Interpretation:**
+- The red line is the prediction line.
+- The shaded region shows where we are confident the true values fall, 95% of the time.
+- We can see that our downwards slope remains consistent, even within the confidence margin 
 
-Link to Chat GPT conversation: https://chatgpt.com/share/68168fde-6eb8-8005-99db-5f616ed79cb5 
+
+
+##Identifying Outliers with Z-scores
+
+We calculate **z-scores** to identify colleges with unusually high or low acceptance or graduation rates.
+- A z-score > 2 or < -2 means a school is far from the average.
+
+
+```{r}
+college_statistics_long <- college_statistics_long |>
+  group_by(year) |>
+  mutate(
+    z_acceptance = (acceptance_rate - mean(acceptance_rate, na.rm = TRUE)) / sd(acceptance_rate, na.rm = TRUE),
+    z_graduation = (graduation_rate - mean(graduation_rate, na.rm = TRUE)) / sd(graduation_rate, na.rm = TRUE)
+  )
+
+outliers <- college_statistics_long |>
+  filter(abs(z_graduation) > 2 | abs(z_acceptance) > 2)
+
+```
+
+**Interpretation:**
+- University of University of Nebraska Nebraska and Northwestern University  stand out from the norm.
+- They may represent particularly successful (Northwestern) or struggling (Nebraska) institutions.
+- Useful for identifying best practices or challenges.
+
+
+
+
+##Story Pitch
+
+Analysis of Big 10 colleges in 2020, 2022, and 2024 shows a clear pattern: schools that accept a smaller amount of applicants graduate a a larger amount of students. The trend holds throughout the years, and it remains significant across all selectivity tiers (Low, Medium, High.) Yet, several colleges fall outside this trends outperforming or under‑performing expectations. This suggests that institutional policies, not selectivity alone, may drive student success and could be a source for further exploration. 
+
+
+**Main Findings**
+
+- There’s a **statistically significant negative relationship** between acceptance and graduation rates.
+- More selective schools generally have **higher graduation rates**.
+- This holds true even across different years.
+- Outliers, like Nebraska and Northwestern, are worth examining to understand what drives unusually high or low outcomes.
+
+
+**Potential Caveats / Problems**
+
+1. **Causation vs. correlation:** Socioeconomic status or institutional resources may contribute to graduation rate as well. We need to test other variables (aid per student, faculty‑student ratio, etc.).  
+2. **Data gaps:** Our dataset lacks two‑year colleges and may not capture transfer or six‑year completion rates.  
+3. **Pandemic effects:** 2020 cohorts faced COVID‑19 disruptions that could skew trends.  
+
+
+**Reporting Plan**
+1. **Data deep dive** – Expand dataset with retention rates, 2 year and 6 year graduation rates; run multivariable linear regression to isolate effect sizes.
+2. **Observation** – Spend a day on two campuses on either end of the spectrum that seem to be outliers from the slope (ie. Northwestern University and University of Nebraska)and write down observations. What is the campus culture like?
+4. **Expert voices** – Talk with researchers who study higher education 
+5. **Student narratives** – Profile students to learn about their experiences on campus. What was thier experinece like with admission? Do they have any sort of financial aid or scholarship? 
+
+
+
+
+Links to Chat GPT conversations: 
+
+https://chatgpt.com/share/68168fde-6eb8-8005-99db-5f616ed79cb5 
+https://chatgpt.com/share/682931e7-e47c-8005-bae4-4e21ef6d7501 
 
 
 
